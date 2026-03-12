@@ -1,3 +1,4 @@
+// app/inventory/page.tsx
 'use client';
 
 import React, { useState } from 'react';
@@ -16,6 +17,7 @@ const STATUSES: ItemStatus[] = ['DRAFT', 'ON_LOAN', 'FOR_SALE', 'RESERVED', 'SOL
 export default function InventoryPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
 
   const items = useFilteredItems();
   const filters = useInventoryStore((state) => state.filters);
@@ -122,7 +124,7 @@ export default function InventoryPage() {
                         <SquishyButton variant="ghost" size="sm" className="w-8 h-8 p-0 rounded-full" onClick={() => setSelectedItem(item)}>
                           <Eye className="w-4 h-4" />
                         </SquishyButton>
-                        <SquishyButton variant="ghost" size="sm" className="w-8 h-8 p-0 rounded-full">
+                        <SquishyButton variant="ghost" size="sm" className="w-8 h-8 p-0 rounded-full" onClick={() => setEditingItem(item)}>
                           <Edit2 className="w-4 h-4" />
                         </SquishyButton>
                       </div>
@@ -152,7 +154,11 @@ export default function InventoryPage() {
         )}
       </SquishyCard>
 
-      <ItemFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <ItemFormModal
+        isOpen={isModalOpen || !!editingItem}
+        onClose={() => { setIsModalOpen(false); setEditingItem(null); }}
+        item={editingItem ?? undefined}
+      />
       <ItemDetailPanel item={selectedItem} onClose={() => setSelectedItem(null)} />
     </div>
   );

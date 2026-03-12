@@ -1,3 +1,4 @@
+// components/customers/customer-form-modal.tsx
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
@@ -5,6 +6,7 @@ import { SquishyButton } from '@/components/ui/squishy-button';
 import { SquishyInput } from '@/components/ui/squishy-input';
 import { useCustomerStore } from '@/store';
 import { Customer } from '@/types';
+import { toast } from '@/components/ui/toast-provider';
 
 export function CustomerFormModal({ isOpen, onClose, customer }: { isOpen: boolean; onClose: () => void; customer?: Customer }) {
   const addCustomer = useCustomerStore((state) => state.addCustomer);
@@ -44,6 +46,7 @@ export function CustomerFormModal({ isOpen, onClose, customer }: { isOpen: boole
     e.preventDefault();
     if (!name.trim()) {
       setError('Full Name is required');
+      toast.error('Name is required.');
       return;
     }
 
@@ -58,6 +61,7 @@ export function CustomerFormModal({ isOpen, onClose, customer }: { isOpen: boole
         notes: notes.trim() || undefined,
         updatedAt: now,
       });
+      toast.success('Customer details updated.');
     } else {
       addCustomer({
         id: crypto.randomUUID(),
@@ -69,6 +73,7 @@ export function CustomerFormModal({ isOpen, onClose, customer }: { isOpen: boole
         createdAt: now,
         updatedAt: now,
       });
+      toast.success('Customer added successfully.');
     }
     
     onClose();

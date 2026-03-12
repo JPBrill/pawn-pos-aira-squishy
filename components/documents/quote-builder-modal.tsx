@@ -5,6 +5,7 @@ import { SquishyButton } from '@/components/ui/squishy-button';
 import { SquishyInput } from '@/components/ui/squishy-input';
 import { useInventoryStore, useCustomerStore, useQuoteStore, useUiStore } from '@/store';
 import { LineItem, QuoteStatus } from '@/types';
+import { toast } from '@/components/ui/toast-provider';
 
 export function QuoteBuilderModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { currency, taxRate } = useUiStore();
@@ -60,6 +61,7 @@ export function QuoteBuilderModal({ isOpen, onClose }: { isOpen: boolean; onClos
       createdAt: new Date().toISOString(),
       validUntil: validUntil || undefined,
     });
+    toast.success(status === 'DRAFT' ? 'Draft saved' : 'Quote created');
     onClose();
   };
 

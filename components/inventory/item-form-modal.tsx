@@ -1,14 +1,17 @@
+// components/inventory/item-form-modal.tsx
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
 import { SquishyButton } from '@/components/ui/squishy-button';
 import { SquishyInput } from '@/components/ui/squishy-input';
 import { useInventoryStore, useUiStore } from '@/store';
-import { ItemType, InventoryItem } from '@/types';
+import { ItemType, InventoryItem, ItemStatus } from '@/types';
+import { toast } from '@/components/ui/toast-provider';
 
-export function ItemFormModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+export function ItemFormModal({ isOpen, onClose, item }: { isOpen: boolean; onClose: () => void; item?: InventoryItem }) {
   const { currency } = useUiStore();
   const addItem = useInventoryStore((state) => state.addItem);
+  const updateItem = useInventoryStore((state) => state.updateItem);
 
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('');
@@ -19,26 +22,41 @@ export function ItemFormModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
   const [appraised, setAppraised] = useState('');
   const [asking, setAsking] = useState('');
   const [notes, setNotes] = useState('');
+  const [status, setStatus] = useState<ItemStatus>('FOR_SALE');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (isOpen) {
       timer = setTimeout(() => {
-        setTitle('');
-        setCategory('');
-        setCondition('Good');
-        setDescription('');
-        setType('purchase');
-        setCost('');
-        setAppraised('');
-        setAsking('');
-        setNotes('');
+        if (item) {
+          setTitle(item.title);
+          setCategory(item.category);
+          setCondition(item.condition);
+          setDescription(item.description || '');
+          setType(item.type);
+          setCost(item.costOrLoanAmount.toString());
+          setAppraised(item.appraisedValue?.toString() || '');
+          setAsking(item.askingPrice?.toString() || '');
+          setNotes(item.metadata.notes || '');
+          setStatus(item.status);
+        } else {
+          setTitle('');
+          setCategory('');
+          setCondition('Good');
+          setDescription('');
+          setType('purchase');
+          setCost('');
+          setAppraised('');
+          setAsking('');
+          setNotes('');
+          setStatus('FOR_SALE');
+        }
         setErrors({});
       }, 0);
     }
     return () => clearTimeout(timer);
-  }, [isOpen]);
+  }, [isOpen, item]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,33 +67,56 @@ export function ItemFormModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      toast.error('Please fill in all required fields.');
       return;
     }
 
     const now = new Date().toISOString();
-    const newItem: InventoryItem = {
-      id: crypto.randomUUID(),
-      title: title.trim(),
-      category: category.trim(),
-      condition,
-      description: description.trim() || undefined,
-      type,
-      costOrLoanAmount: parseFloat(cost),
-      appraisedValue: appraised ? parseFloat(appraised) : undefined,
-      askingPrice: asking ? parseFloat(asking) : undefined,
-      status: type === 'purchase' ? 'FOR_SALE' : 'ON_LOAN',
-      ecommerce: {
-        publishOnline: false,
-        imageUrls: [],
-      },
-      metadata: {
-        createdAt: now,
-        updatedAt: now,
-        notes: notes.trim() || undefined,
-      },
-    };
+    
+    if (item) {
+      updateItem(item.id, {
+        title: title.trim(),
+        category: category.trim(),
+        condition,
+        description: description.trim() || undefined,
+        type,
+        costOrLoanAmount: parseFloat(cost),
+        appraisedValue: appraised ? parseFloat(appraised) : undefined,
+        askingPrice: asking ? parseFloat(asking) : undefined,
+        status,
+        metadata: {
+          ...item.metadata,
+          updatedAt: now,
+          notes: notes.trim() || undefined,
+        },
+      });
+      toast.success('Item updated successfully.');
+    } else {
+      const newItem: InventoryItem = {
+        id: crypto.randomUUID(),
+        title: title.trim(),
+        category: category.trim(),
+        condition,
+        description: description.trim() || undefined,
+        type,
+        costOrLoanAmount: parseFloat(cost),
+        appraisedValue: appraised ? parseFloat(appraised) : undefined,
+        askingPrice: asking ? parseFloat(asking) : undefined,
+        status: type === 'purchase' ? 'FOR_SALE' : 'ON_LOAN',
+        ecommerce: {
+          publishOnline: false,
+          imageUrls: [],
+        },
+        metadata: {
+          createdAt: now,
+          updatedAt: now,
+          notes: notes.trim() || undefined,
+        },
+      };
 
-    addItem(newItem);
+      addItem(newItem);
+      toast.success('Item added to inventory.');
+    }
     onClose();
   };
 
@@ -99,7 +140,7 @@ export function ItemFormModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
               className="w-full max-w-2xl h-full md:h-auto max-h-full bg-ps-bg-elevated border border-white/10 rounded-2xl flex flex-col pointer-events-auto overflow-hidden"
             >
               <div className="flex items-center justify-between p-6 border-b border-white/5 shrink-0">
-                <h2 className="text-xl font-bold text-white">Receive Item</h2>
+                <h2 className="text-xl font-bold text-white">{item ? 'Edit Item' : 'Receive Item'}</h2>
                 <SquishyButton variant="ghost" size="sm" onClick={onClose} className="w-8 h-8 p-0 rounded-full">
                   <X className="w-5 h-5" />
                 </SquishyButton>
@@ -210,6 +251,28 @@ export function ItemFormModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                       />
                     </div>
                   </section>
+
+                  {/* Status (Edit Mode Only) */}
+                  {item && (
+                    <section className="space-y-4">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-ps-text-muted">Status</h3>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-medium uppercase tracking-wider text-ps-text-muted">Current Status</label>
+                        <select
+                          value={status}
+                          onChange={(e) => setStatus(e.target.value as ItemStatus)}
+                          className="w-full bg-ps-bg-base border border-white/10 rounded-xl py-3 px-4 text-sm text-white transition-all focus:outline-none focus:ring-2 focus:ring-ps-primary focus:border-ps-primary/50 appearance-none"
+                        >
+                          <option value="DRAFT">Draft</option>
+                          <option value="ON_LOAN">On Loan</option>
+                          <option value="FOR_SALE">For Sale</option>
+                          <option value="RESERVED">Reserved</option>
+                          <option value="SOLD">Sold</option>
+                          <option value="ARCHIVED">Archived</option>
+                        </select>
+                      </div>
+                    </section>
+                  )}
 
                   {/* Notes */}
                   <section className="space-y-4">

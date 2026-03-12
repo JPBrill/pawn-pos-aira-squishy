@@ -1,8 +1,10 @@
+// store/pos-store.ts
 import { create } from 'zustand';
 import { CartItem, PaymentMethod, Invoice } from '@/types';
 import { useInvoiceStore } from './invoice-store';
 import { useInventoryStore } from './inventory-store';
 import { useUiStore } from './ui-store';
+import { toast } from '@/components/ui/toast-provider';
 
 interface PosState {
   cartItems: CartItem[];
@@ -74,6 +76,7 @@ export const usePosStore = create<PosState>((set, get) => ({
     };
 
     useInvoiceStore.getState().addInvoice(invoice);
+    toast.success('Sale complete! Invoice created.');
 
     const setStatus = useInventoryStore.getState().setStatus;
     cartItems.forEach(item => {

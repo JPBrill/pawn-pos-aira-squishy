@@ -10,6 +10,7 @@ import { Quote, Invoice } from '@/types';
 import { QuoteBuilderModal } from '@/components/documents/quote-builder-modal';
 import { QuoteDetailModal } from '@/components/documents/quote-detail-modal';
 import { InvoiceDetailModal } from '@/components/documents/invoice-detail-modal';
+import { toast } from '@/components/ui/toast-provider';
 
 export default function DocumentsPage() {
   const [activeTab, setActiveTab] = useState<'quotes' | 'invoices'>('quotes');
@@ -45,6 +46,7 @@ export default function DocumentsPage() {
     };
     useInvoiceStore.getState().addInvoice(invoice);
     useQuoteStore.getState().updateQuote(quote.id, { status: 'CONVERTED' });
+    toast.success('Quote converted to invoice');
   }, []);
 
   const filteredQuotes = quotes.filter(q => 

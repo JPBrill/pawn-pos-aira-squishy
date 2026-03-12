@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import { SquishyButton } from '@/components/ui/squishy-button';
 import { useCustomerStore, useUiStore, useQuoteStore, useInvoiceStore } from '@/store';
 import { Quote, Invoice } from '@/types';
+import { toast } from '@/components/ui/toast-provider';
 
 export function QuoteDetailModal({ quote, onClose }: { quote: Quote | null; onClose: () => void }) {
   const { currency, shopName } = useUiStore();
@@ -31,6 +32,7 @@ export function QuoteDetailModal({ quote, onClose }: { quote: Quote | null; onCl
     };
     useInvoiceStore.getState().addInvoice(invoice);
     useQuoteStore.getState().updateQuote(quote.id, { status: 'CONVERTED' });
+    toast.success('Quote converted to invoice');
     onClose();
   };
 

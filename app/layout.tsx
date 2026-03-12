@@ -1,7 +1,9 @@
+// app/layout.tsx
 import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { Sidebar } from '@/components/sidebar';
+import { ToastProvider } from '@/components/ui/toast-provider';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' });
@@ -23,6 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 pt-16 pb-4 md:p-6 lg:p-8">
           {children}
         </main>
+        <ToastProvider />
       </body>
     </html>
   );

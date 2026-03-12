@@ -1,3 +1,4 @@
+// components/customers/customer-detail-panel.tsx
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Edit2, Copy, FileText, Receipt } from 'lucide-react';
@@ -6,6 +7,7 @@ import { SquishyButton } from '@/components/ui/squishy-button';
 import { SquishyCard } from '@/components/ui/squishy-card';
 import { useQuoteStore, useInvoiceStore, useUiStore } from '@/store';
 import { Customer } from '@/types';
+import { toast } from '@/components/ui/toast-provider';
 
 export function CustomerDetailPanel({ customer, onClose, onEdit }: { customer: Customer | null; onClose: () => void; onEdit: (customer: Customer) => void }) {
   const { currency } = useUiStore();
@@ -19,8 +21,9 @@ export function CustomerDetailPanel({ customer, onClose, onEdit }: { customer: C
 
   const totalSpent = customerInvoices.reduce((sum, inv) => sum + inv.total, 0);
 
-  const copyToClipboard = (text: string) => {
+  const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
+    toast.success(`${label} copied to clipboard.`);
   };
 
   const formatMemberSince = (dateString: string) => {
@@ -73,7 +76,7 @@ export function CustomerDetailPanel({ customer, onClose, onEdit }: { customer: C
                     <div className="flex items-center gap-2 group">
                       <span className="text-sm text-white font-medium">{customer.phone || '—'}</span>
                       {customer.phone && (
-                        <button onClick={() => copyToClipboard(customer.phone!)} className="text-ps-text-muted hover:text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => copyToClipboard(customer.phone!, 'Phone number')} className="text-ps-text-muted hover:text-white opacity-0 group-hover:opacity-100 transition-opacity">
                           <Copy className="w-3 h-3" />
                         </button>
                       )}
@@ -84,7 +87,7 @@ export function CustomerDetailPanel({ customer, onClose, onEdit }: { customer: C
                     <div className="flex items-center gap-2 group">
                       <span className="text-sm text-white font-medium truncate">{customer.email || '—'}</span>
                       {customer.email && (
-                        <button onClick={() => copyToClipboard(customer.email!)} className="text-ps-text-muted hover:text-white opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                        <button onClick={() => copyToClipboard(customer.email!, 'Email address')} className="text-ps-text-muted hover:text-white opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                           <Copy className="w-3 h-3" />
                         </button>
                       )}
@@ -95,7 +98,7 @@ export function CustomerDetailPanel({ customer, onClose, onEdit }: { customer: C
                     <div className="flex items-center gap-2 group">
                       <span className="text-sm text-white font-medium font-mono">{customer.idNumber || '—'}</span>
                       {customer.idNumber && (
-                        <button onClick={() => copyToClipboard(customer.idNumber!)} className="text-ps-text-muted hover:text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => copyToClipboard(customer.idNumber!, 'ID number')} className="text-ps-text-muted hover:text-white opacity-0 group-hover:opacity-100 transition-opacity">
                           <Copy className="w-3 h-3" />
                         </button>
                       )}

@@ -1,4 +1,5 @@
-import React from 'react';
+// components/inventory/item-detail-panel.tsx
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
 import { SquishyButton } from '@/components/ui/squishy-button';
@@ -8,17 +9,25 @@ import { SquishyToggle } from '@/components/ui/squishy-toggle';
 import { SquishyInput } from '@/components/ui/squishy-input';
 import { useInventoryStore, useUiStore } from '@/store';
 import { InventoryItem } from '@/types';
+import { toast } from '@/components/ui/toast-provider';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 export function ItemDetailPanel({ item, onClose }: { item: InventoryItem | null; onClose: () => void }) {
   const { currency } = useUiStore();
   const setStatus = useInventoryStore((state) => state.setStatus);
   const updateItem = useInventoryStore((state) => state.updateItem);
+  const [confirmAction, setConfirmAction] = useState<{ type: 'sold' | 'archive' } | null>(null);
 
   const handleTogglePublish = (checked: boolean) => {
     if (!item) return;
     updateItem(item.id, {
       ecommerce: { ...item.ecommerce, publishOnline: checked },
     });
+    if (checked) {
+      toast.success('Item published to online store.');
+    } else {
+      toast.info('Item removed from online store.');
+    }
   };
 
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,23 +131,42 @@ export function ItemDetailPanel({ item, onClose }: { item: InventoryItem | null;
               {/* Actions */}
               <section className="space-y-4">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-ps-text-muted">Actions</h3>
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-3 relative">
                   {(item.status === 'ON_LOAN' || item.status === 'DRAFT') && (
-                    <SquishyButton onClick={() => setStatus(item.id, 'FOR_SALE')}>
+                    <SquishyButton onClick={() => { setStatus(item.id, 'FOR_SALE'); toast.success('Item marked as For Sale.'); }}>
                       Mark For Sale
                     </SquishyButton>
                   )}
                   {item.status === 'FOR_SALE' && (
-                    <SquishyButton onClick={() => setStatus(item.id, 'ON_LOAN')}>
+                    <SquishyButton onClick={() => { setStatus(item.id, 'ON_LOAN'); toast.success('Item marked as On Loan.'); }}>
                       Mark On Loan
                     </SquishyButton>
                   )}
-                  <SquishyButton className="bg-ps-error text-white hover:bg-ps-error/80" onClick={() => setStatus(item.id, 'SOLD')}>
+                  <SquishyButton className="bg-ps-error text-white hover:bg-ps-error/80" onClick={() => setConfirmAction({ type: 'sold' })}>
                     Mark Sold
                   </SquishyButton>
-                  <SquishyButton variant="ghost" onClick={() => setStatus(item.id, 'ARCHIVED')}>
+                  <SquishyButton variant="ghost" onClick={() => setConfirmAction({ type: 'archive' })}>
                     Archive
                   </SquishyButton>
+
+                  <ConfirmDialog
+                    isOpen={!!confirmAction}
+                    message={confirmAction?.type === 'sold' 
+                      ? 'Mark this item as sold? This cannot be undone.' 
+                      : 'Archive this item? It will be hidden from active inventory.'}
+                    confirmLabel={confirmAction?.type === 'sold' ? 'Mark Sold' : 'Archive'}
+                    onConfirm={() => {
+                      if (confirmAction?.type === 'sold') {
+                        setStatus(item.id, 'SOLD');
+                        toast.success('Item marked as Sold.');
+                      } else {
+                        setStatus(item.id, 'ARCHIVED');
+                        toast.info('Item archived.');
+                      }
+                      setConfirmAction(null);
+                    }}
+                    onCancel={() => setConfirmAction(null)}
+                  />
                 </div>
               </section>
 
