@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ps-bg-base: #05060a;
+  --color-ps-bg-elevated: #101218;
+  --color-ps-bg-surface: #1a1d24;
+  --color-ps-primary: #35bdf8;
+  --color-ps-primary-hover: #15f4d1;
+  --color-ps-secondary: #a855f7;
+  --color-ps-text: #f1f5f9;
+  --color-ps-text-muted: #94a3b8;
+  --color-ps-success: #10b981;
+  --color-ps-warning: #f59e0b;
+  --color-ps-error: #ef4444;
+}
+
+body {
+  background-color: var(--color-ps-bg-base);
+  color: var(--color-ps-text);
+}
