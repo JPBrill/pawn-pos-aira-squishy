@@ -1,5 +1,8 @@
 import { create } from 'zustand';
-import { CartItem, PaymentMethod } from '@/types';
+import { CartItem, PaymentMethod, Invoice } from '@/types';
+import { useInvoiceStore } from './invoice-store';
+import { useInventoryStore } from './inventory-store';
+import { useUiStore } from './ui-store';
 
 interface PosState {
   cartItems: CartItem[];
@@ -14,7 +17,7 @@ interface PosState {
   completeSale: () => void;
 }
 
-export const usePosStore = create<PosState>((set) => ({
+export const usePosStore = create<PosState>((set, get) => ({
   cartItems: [],
   activeCustomerId: null,
   paymentMethod: null,
@@ -46,9 +49,38 @@ export const usePosStore = create<PosState>((set) => ({
   setPaymentMethod: (method) => set({ paymentMethod: method }),
   clearCart: () => set({ cartItems: [], activeCustomerId: null, paymentMethod: null }),
   completeSale: () => {
-    // TODO stub: log to console for now, will wire to inventory + invoices in Phase 3
-    console.log('Sale completed!');
-    set({ cartItems: [], activeCustomerId: null, paymentMethod: null });
+    const { cartItems, activeCustomerId, paymentMethod } = get();
+    if (cartItems.length === 0) return;
+
+    const taxRate = useUiStore.getState().taxRate;
+    const subtotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+    const total = subtotal + subtotal * (taxRate / 100);
+
+    const invoice: Invoice = {
+      id: crypto.randomUUID(),
+      invoiceNumber: `INV-${Date.now()}`,
+      customerId: activeCustomerId || undefined,
+      lineItems: cartItems.map(item => ({
+        itemId: item.itemId,
+        description: item.title,
+        price: item.price,
+        quantity: item.quantity
+      })),
+      taxRate,
+      discount: 0,
+      total,
+      paymentMethod: paymentMethod || undefined,
+      createdAt: new Date().toISOString()
+    };
+
+    useInvoiceStore.getState().addInvoice(invoice);
+
+    const setStatus = useInventoryStore.getState().setStatus;
+    cartItems.forEach(item => {
+      setStatus(item.itemId, 'SOLD');
+    });
+
+    get().clearCart();
   },
 }));
 
