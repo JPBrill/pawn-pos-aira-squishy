@@ -14,10 +14,13 @@ export default function PosPage() {
 
   useEffect(() => {
     if (invoices.length > prevInvoicesLength.current) {
-      setShowToast(true);
-      const timer = setTimeout(() => setShowToast(false), 3000);
+      const showTimer = setTimeout(() => setShowToast(true), 0);
+      const hideTimer = setTimeout(() => setShowToast(false), 3000);
       prevInvoicesLength.current = invoices.length;
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(showTimer);
+        clearTimeout(hideTimer);
+      };
     }
     prevInvoicesLength.current = invoices.length;
   }, [invoices.length]);

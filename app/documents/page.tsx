@@ -30,7 +30,7 @@ export default function DocumentsPage() {
     return customer ? customer.name : 'Unknown';
   };
 
-  const convertToInvoice = (quote: Quote) => {
+  const convertToInvoice = React.useCallback((quote: Quote) => {
     const invoice: Invoice = {
       id: crypto.randomUUID(),
       invoiceNumber: `INV-${Date.now()}`,
@@ -45,7 +45,7 @@ export default function DocumentsPage() {
     };
     useInvoiceStore.getState().addInvoice(invoice);
     useQuoteStore.getState().updateQuote(quote.id, { status: 'CONVERTED' });
-  };
+  }, []);
 
   const filteredQuotes = quotes.filter(q => 
     q.quoteNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||

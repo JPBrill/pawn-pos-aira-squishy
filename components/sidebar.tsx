@@ -134,6 +134,7 @@ function DesktopSidebar() {
           className={cn(
             'flex items-center rounded-xl transition-colors text-ps-text-muted hover:text-ps-text hover:bg-white/5 overflow-hidden',
             expanded ? 'gap-3 px-4 py-3' : 'justify-center p-3',
+            pathname === '/settings' ? 'text-ps-primary' : ''
           )}
         >
           <Settings className="w-5 h-5 flex-shrink-0" />
@@ -174,7 +175,10 @@ function MobileSidebar() {
   const [open, setOpen] = useState(false);
 
   // Close drawer on route change
-  useEffect(() => { setOpen(false); }, [pathname]);
+  useEffect(() => {
+    const timer = setTimeout(() => setOpen(false), 0);
+    return () => clearTimeout(timer);
+  }, [pathname]);
 
   return (
     <>
@@ -255,7 +259,10 @@ function MobileSidebar() {
               <Link
                 href="/settings"
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-ps-text-muted hover:text-ps-text hover:bg-white/5 transition-colors"
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 w-full rounded-xl transition-colors",
+                  pathname === '/settings' ? 'text-ps-primary bg-white/5' : 'text-ps-text-muted hover:text-ps-text hover:bg-white/5'
+                )}
               >
                 <Settings className="w-5 h-5" />
                 <span className="font-medium text-sm">Settings</span>

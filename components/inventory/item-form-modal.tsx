@@ -22,18 +22,22 @@ export function ItemFormModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
+    let timer: NodeJS.Timeout;
     if (isOpen) {
-      setTitle('');
-      setCategory('');
-      setCondition('Good');
-      setDescription('');
-      setType('purchase');
-      setCost('');
-      setAppraised('');
-      setAsking('');
-      setNotes('');
-      setErrors({});
+      timer = setTimeout(() => {
+        setTitle('');
+        setCategory('');
+        setCondition('Good');
+        setDescription('');
+        setType('purchase');
+        setCost('');
+        setAppraised('');
+        setAsking('');
+        setNotes('');
+        setErrors({});
+      }, 0);
     }
+    return () => clearTimeout(timer);
   }, [isOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {

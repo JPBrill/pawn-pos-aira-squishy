@@ -18,22 +18,26 @@ export function CustomerFormModal({ isOpen, onClose, customer }: { isOpen: boole
   const [error, setError] = useState('');
 
   useEffect(() => {
+    let timer: NodeJS.Timeout;
     if (isOpen) {
-      if (customer) {
-        setName(customer.name);
-        setIdNumber(customer.idNumber || '');
-        setPhone(customer.phone || '');
-        setEmail(customer.email || '');
-        setNotes(customer.notes || '');
-      } else {
-        setName('');
-        setIdNumber('');
-        setPhone('');
-        setEmail('');
-        setNotes('');
-      }
-      setError('');
+      timer = setTimeout(() => {
+        if (customer) {
+          setName(customer.name);
+          setIdNumber(customer.idNumber || '');
+          setPhone(customer.phone || '');
+          setEmail(customer.email || '');
+          setNotes(customer.notes || '');
+        } else {
+          setName('');
+          setIdNumber('');
+          setPhone('');
+          setEmail('');
+          setNotes('');
+        }
+        setError('');
+      }, 0);
     }
+    return () => clearTimeout(timer);
   }, [isOpen, customer]);
 
   const handleSubmit = (e: React.FormEvent) => {
