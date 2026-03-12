@@ -20,7 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         <Sidebar />
         {/* pt-16 gives space for the mobile hamburger button; md:pt-0 resets on desktop */}
-        <main className="flex-1 overflow-y-auto px-4 pt-16 pb-4 md:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 pt-16 pb-4 md:p-6 lg:p-8">
           {children}
         </main>
       </body>

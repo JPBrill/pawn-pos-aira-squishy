@@ -18,3 +18,8 @@ body {
   background-color: var(--color-ps-bg-base);
   color: var(--color-ps-text);
 }
+
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}

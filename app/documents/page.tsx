@@ -40,7 +40,7 @@ export default function DocumentsPage() {
 
         {/* Table — horizontally scrollable so columns never clip */}
         <div className="flex-1 border border-white/5 rounded-xl overflow-hidden flex flex-col min-h-0">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto max-w-full">
             <div className="min-w-[600px]">
               {/* Table header */}
               <div className="bg-ps-bg-base border-b border-white/5 grid grid-cols-[2fr_1fr_1fr_1fr_80px] gap-4 px-4 py-3 text-xs font-mono text-ps-text-muted uppercase tracking-wider">
