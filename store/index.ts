@@ -1,4 +1,4 @@
-export { useInventoryStore, selectFilteredItems } from './inventory-store';
+export { useInventoryStore, useFilteredItems } from './inventory-store';
 export { useCustomerStore } from './customer-store';
 export { useQuoteStore } from './quote-store';
 export { useInvoiceStore } from './invoice-store';

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { InventoryItem, ItemStatus } from '@/types';
+import { useShallow } from 'zustand/react/shallow';
 
 interface InventoryFilters {
   status?: ItemStatus;
@@ -51,22 +52,22 @@ export const useInventoryStore = create<InventoryState>()(
   )
 );
 
-export const selectFilteredItems = (state: InventoryState): InventoryItem[] => {
-  return state.items.filter((item) => {
-    if (state.filters.status && item.status !== state.filters.status) {
-      return false;
-    }
-    if (state.filters.category && item.category !== state.filters.category) {
-      return false;
-    }
-    if (state.filters.search) {
-      const searchLower = state.filters.search.toLowerCase();
-      return (
-        item.title.toLowerCase().includes(searchLower) ||
-        item.description?.toLowerCase().includes(searchLower) ||
-        item.id.toLowerCase().includes(searchLower)
-      );
-    }
-    return true;
-  });
-};
+export const useFilteredItems = () =>
+  useInventoryStore(
+    useShallow((state) => {
+      const { items, filters } = state;
+      return items.filter((item) => {
+        if (filters.status && item.status !== filters.status) return false;
+        if (filters.category && item.category !== filters.category) return false;
+        if (filters.search) {
+          const q = filters.search.toLowerCase();
+          return (
+            item.title.toLowerCase().includes(q) ||
+            item.category.toLowerCase().includes(q) ||
+            item.description?.toLowerCase().includes(q)
+          );
+        }
+        return true;
+      });
+    })
+  );
