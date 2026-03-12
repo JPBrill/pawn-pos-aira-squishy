@@ -6,11 +6,10 @@ import { SquishyButton } from '@/components/ui/squishy-button';
 import { SquishyInput } from '@/components/ui/squishy-input';
 import { SquishyBadge } from '@/components/ui/squishy-badge';
 import { Search, Plus, PackageSearch, Eye, Edit2 } from 'lucide-react';
-import { useInventoryStore, selectFilteredItems, useUiStore } from '@/store';
+import { useInventoryStore, useFilteredItems, useUiStore } from '@/store';
 import { ItemStatus, InventoryItem } from '@/types';
 import { ItemFormModal } from '@/components/inventory/item-form-modal';
 import { ItemDetailPanel } from '@/components/inventory/item-detail-panel';
-import { useFilteredItems } from '@/store/inventory-store';
 
 const STATUSES: ItemStatus[] = ['DRAFT', 'ON_LOAN', 'FOR_SALE', 'RESERVED', 'SOLD', 'ARCHIVED'];
 
