@@ -1,18 +1,18 @@
 // components/customers/customer-detail-panel.tsx
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Edit2, Copy, FileText, Receipt } from 'lucide-react';
+import { X, Edit2, Copy, CheckCheck, FileText, Receipt } from 'lucide-react';
 import Link from 'next/link';
 import { SquishyButton } from '@/components/ui/squishy-button';
 import { SquishyCard } from '@/components/ui/squishy-card';
 import { useQuoteStore, useInvoiceStore, useUiStore } from '@/store';
 import { Customer } from '@/types';
-import { toast } from '@/components/ui/toast-provider';
 
 export function CustomerDetailPanel({ customer, onClose, onEdit }: { customer: Customer | null; onClose: () => void; onEdit: (customer: Customer) => void }) {
   const { currency } = useUiStore();
   const quotes = useQuoteStore((state) => state.quotes);
   const invoices = useInvoiceStore((state) => state.invoices);
+  const [copiedField, setCopiedField] = React.useState<string | null>(null);
 
   if (!customer) return null;
 
@@ -21,9 +21,10 @@ export function CustomerDetailPanel({ customer, onClose, onEdit }: { customer: C
 
   const totalSpent = customerInvoices.reduce((sum, inv) => sum + inv.total, 0);
 
-  const copyToClipboard = (text: string, label: string) => {
-    navigator.clipboard.writeText(text);
-    toast.success(`${label} copied to clipboard.`);
+  const handleCopy = (field: string, value: string) => {
+    navigator.clipboard.writeText(value);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 1500);
   };
 
   const formatMemberSince = (dateString: string) => {
@@ -73,33 +74,48 @@ export function CustomerDetailPanel({ customer, onClose, onEdit }: { customer: C
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <div className="text-xs text-ps-text-muted">Phone</div>
-                    <div className="flex items-center gap-2 group">
+                    <div className="flex items-center">
                       <span className="text-sm text-white font-medium">{customer.phone || '—'}</span>
                       {customer.phone && (
-                        <button onClick={() => copyToClipboard(customer.phone!, 'Phone number')} className="text-ps-text-muted hover:text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Copy className="w-3 h-3" />
+                        <button
+                          onClick={() => handleCopy('phone', customer.phone!)}
+                          className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-transparent hover:bg-white/10 text-ps-text-muted hover:text-white transition-colors ml-2 cursor-pointer"
+                        >
+                          {copiedField === 'phone' 
+                            ? <CheckCheck className="w-3 h-3 text-ps-success" />
+                            : <Copy className="w-3 h-3" />}
                         </button>
                       )}
                     </div>
                   </div>
                   <div className="space-y-1">
                     <div className="text-xs text-ps-text-muted">Email</div>
-                    <div className="flex items-center gap-2 group">
+                    <div className="flex items-center">
                       <span className="text-sm text-white font-medium truncate">{customer.email || '—'}</span>
                       {customer.email && (
-                        <button onClick={() => copyToClipboard(customer.email!, 'Email address')} className="text-ps-text-muted hover:text-white opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                          <Copy className="w-3 h-3" />
+                        <button
+                          onClick={() => handleCopy('email', customer.email!)}
+                          className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-transparent hover:bg-white/10 text-ps-text-muted hover:text-white transition-colors ml-2 cursor-pointer shrink-0"
+                        >
+                          {copiedField === 'email' 
+                            ? <CheckCheck className="w-3 h-3 text-ps-success" />
+                            : <Copy className="w-3 h-3" />}
                         </button>
                       )}
                     </div>
                   </div>
                   <div className="space-y-1">
                     <div className="text-xs text-ps-text-muted">ID Number</div>
-                    <div className="flex items-center gap-2 group">
+                    <div className="flex items-center">
                       <span className="text-sm text-white font-medium font-mono">{customer.idNumber || '—'}</span>
                       {customer.idNumber && (
-                        <button onClick={() => copyToClipboard(customer.idNumber!, 'ID number')} className="text-ps-text-muted hover:text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Copy className="w-3 h-3" />
+                        <button
+                          onClick={() => handleCopy('idNumber', customer.idNumber!)}
+                          className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-transparent hover:bg-white/10 text-ps-text-muted hover:text-white transition-colors ml-2 cursor-pointer"
+                        >
+                          {copiedField === 'idNumber' 
+                            ? <CheckCheck className="w-3 h-3 text-ps-success" />
+                            : <Copy className="w-3 h-3" />}
                         </button>
                       )}
                     </div>

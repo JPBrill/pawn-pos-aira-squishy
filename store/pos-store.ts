@@ -22,7 +22,7 @@ interface PosState {
 export const usePosStore = create<PosState>((set, get) => ({
   cartItems: [],
   activeCustomerId: null,
-  paymentMethod: null,
+  paymentMethod: 'CASH' as PaymentMethod,
   addToCart: (item) =>
     set((state) => {
       const existing = state.cartItems.find((i) => i.itemId === item.itemId);
@@ -49,7 +49,7 @@ export const usePosStore = create<PosState>((set, get) => ({
     })),
   setActiveCustomer: (id) => set({ activeCustomerId: id }),
   setPaymentMethod: (method) => set({ paymentMethod: method }),
-  clearCart: () => set({ cartItems: [], activeCustomerId: null, paymentMethod: null }),
+  clearCart: () => set({ cartItems: [], activeCustomerId: null, paymentMethod: 'CASH' as PaymentMethod }),
   completeSale: () => {
     const { cartItems, activeCustomerId, paymentMethod } = get();
     if (cartItems.length === 0) return;

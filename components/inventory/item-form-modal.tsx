@@ -63,7 +63,9 @@ export function ItemFormModal({ isOpen, onClose, item }: { isOpen: boolean; onCl
     const newErrors: Record<string, string> = {};
     if (!title.trim()) newErrors.title = 'Title is required';
     if (!category.trim()) newErrors.category = 'Category is required';
-    if (!cost.trim()) newErrors.cost = 'Cost/Loan Amount is required';
+    if (cost === '' || cost === undefined || cost === null) {
+      newErrors.cost = 'Cost or loan amount is required.';
+    }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
