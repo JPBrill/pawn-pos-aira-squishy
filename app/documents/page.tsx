@@ -19,6 +19,9 @@ export default function DocumentsPage() {
   const [isQuoteBuilderOpen, setIsQuoteBuilderOpen] = useState(false);
   const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [convertingQuote, setConvertingQuote] = useState<Quote | null>(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'CASH' | 'CARD' | 'OTHER'>('CASH');
+
 
   const quotes = useQuoteStore((state) => state.quotes);
   const invoices = useInvoiceStore((state) => state.invoices);
@@ -31,23 +34,31 @@ export default function DocumentsPage() {
     return customer ? customer.name : 'Unknown';
   };
 
-  const convertToInvoice = React.useCallback((quote: Quote) => {
+  const handleConvertClick = (quote: Quote) => {
+  setConvertingQuote(quote);
+  setSelectedPaymentMethod('CASH');
+};
+
+  const confirmConvertToInvoice = React.useCallback(() => {
+    if (!convertingQuote) return;
     const invoice: Invoice = {
       id: crypto.randomUUID(),
       invoiceNumber: `INV-${Date.now()}`,
-      quoteId: quote.id,
-      customerId: quote.customerId,
-      lineItems: quote.lineItems,
-      taxRate: quote.taxRate,
-      discount: quote.discount,
-      total: quote.total,
-      paymentMethod: undefined,
+      quoteId: convertingQuote.id,
+      customerId: convertingQuote.customerId,
+      lineItems: convertingQuote.lineItems,
+      taxRate: convertingQuote.taxRate,
+      discount: convertingQuote.discount,
+      total: convertingQuote.total,
+      paymentMethod: selectedPaymentMethod,
       createdAt: new Date().toISOString(),
     };
     useInvoiceStore.getState().addInvoice(invoice);
-    useQuoteStore.getState().updateQuote(quote.id, { status: 'CONVERTED' });
+    useQuoteStore.getState().updateQuote(convertingQuote.id, { status: 'CONVERTED' });
     toast.success('Quote converted to invoice');
-  }, []);
+    setConvertingQuote(null);
+    }, [convertingQuote, selectedPaymentMethod]);
+
 
   const filteredQuotes = quotes.filter(q => 
     q.quoteNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -152,7 +163,7 @@ export default function DocumentsPage() {
                             <Eye className="w-4 h-4" />
                           </SquishyButton>
                           {(quote.status === 'SENT' || quote.status === 'ACCEPTED') && (
-                            <SquishyButton variant="ghost" size="sm" className="w-8 h-8 p-0 rounded-full text-ps-primary hover:text-ps-primary hover:bg-ps-primary/10" onClick={() => convertToInvoice(quote)}>
+                            <SquishyButton variant="ghost" size="sm" className="w-8 h-8 p-0 rounded-full text-ps-primary hover:text-ps-primary hover:bg-ps-primary/10" onClick={() => handleConvertClick(quote)}>
                               <ArrowRight className="w-4 h-4" />
                             </SquishyButton>
                           )}
@@ -232,6 +243,43 @@ export default function DocumentsPage() {
           )}
         </div>
       </SquishyCard>
+
+      {convertingQuote && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setConvertingQuote(null)} />
+        <div className="relative bg-ps-bg-elevated border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+        <h3 className="text-lg font-bold text-white mb-1">Convert to Invoice</h3>
+        <p className="text-sm text-ps-text-muted mb-5">
+        {convertingQuote.quoteNumber} · {currency}{convertingQuote.total.toFixed(2)}
+        </p>
+        <p className="text-xs uppercase tracking-wider text-ps-text-muted mb-3">Payment Method</p>
+          <div className="grid grid-cols-3 gap-2 mb-6">
+            {(['CASH', 'CARD', 'OTHER'] as const).map((method) => (
+              <button
+                key={method}
+               onClick={() => setSelectedPaymentMethod(method)}
+               className={`py-2.5 rounded-xl text-sm font-medium border transition-all ${
+                 selectedPaymentMethod === method
+                   ? 'bg-ps-primary/20 border-ps-primary text-ps-primary'
+                   : 'bg-white/5 border-white/10 text-ps-text-muted hover:bg-white/10 hover:text-white'
+                  }`
+                 }>
+               {method}
+            </button>
+          ))}
+         </div>
+           <div className="flex gap-3">
+            <SquishyButton variant="ghost" className="flex-1" onClick={() => setConvertingQuote(null)}>
+               Cancel
+             </SquishyButton>
+             <SquishyButton className="flex-1" onClick={confirmConvertToInvoice}>
+               Create Invoice
+             </SquishyButton>
+           </div>
+         </div>
+       </div>
+      )}
+
 
       <QuoteBuilderModal isOpen={isQuoteBuilderOpen} onClose={() => setIsQuoteBuilderOpen(false)} />
       <QuoteDetailModal quote={selectedQuote} onClose={() => setSelectedQuote(null)} />
