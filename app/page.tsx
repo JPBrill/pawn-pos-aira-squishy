@@ -15,7 +15,7 @@ export default function DashboardPage() {
   const allInvoices = useInvoiceStore((state) => state.invoices);
   const allQuotes = useQuoteStore((state) => state.quotes);
   const allCustomers = useCustomerStore((state) => state.customers);
-  const { currency } = useUiStore();
+  const { currency, shopName } = useUiStore();
 
   // Today's date boundaries
   const todayStart = new Date(); todayStart.setHours(0,0,0,0);
@@ -45,7 +45,7 @@ export default function DashboardPage() {
     <div className="space-y-6 max-w-7xl mx-auto">
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white mb-1">Command Center</h1>
+         <h1 className="text-3xl font-bold tracking-tight text-white mb-1">{shopName || 'My Shop'} Dashboard</h1>
           <p className="text-ps-text-muted">Welcome back. Here&apos;s what&apos;s happening today.</p>
         </div>
         <div className="flex items-center gap-3 self-start sm:self-auto">
@@ -120,16 +120,20 @@ export default function DashboardPage() {
             {recentInvoices.length > 0 ? (
               <div className="divide-y divide-white/5">
                 {recentInvoices.map(invoice => (
-                  <div key={invoice.id} className="p-4 flex items-center justify-between hover:bg-white/[0.02] transition-colors">
-                    <div>
-                      <div className="font-mono text-white text-sm">{invoice.invoiceNumber}</div>
-                      <div className="text-xs text-ps-text-muted mt-0.5">{getCustomerName(invoice.customerId)}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-mono text-cyan-400 text-sm">{currency}{invoice.total.toFixed(2)}</div>
-                      <div className="text-xs text-ps-text-muted mt-0.5">{new Date(invoice.createdAt).toLocaleDateString()}</div>
-                    </div>
-                  </div>
+                  <button key={invoice.id} onClick={() => router.push('/documents')}
+                      className="w-full p-4 flex items-center justify-between hover:bg-white/[0.03] transition-colors text-left cursor-pointer group"> <div>
+                      <div className="font-mono text-white text-sm group-hover:text-ps-primary transition-colors">{invoice.invoiceNumber} </div>
+                      <div className="text-xs text-ps-text-muted mt-0.5">{getCustomerName(invoice.  customerId)}</div>
+                      </div>
+                      <div className="text-right flex items-center gap-3">
+                      <div>
+                       <div className="font-mono text-cyan-400 text-sm">{currency}{invoice.total.toFixed(2)}</div>
+                       <div className="text-xs text-ps-text-muted mt-0.5">{new Date(invoice.createdAt).toLocaleDateString()}</div>
+                       </div>
+                       <ArrowRight className="w-3 h-3 text-ps-text-muted opacity-0 group-hover:opacity-100 transition-opacity" />
+                       </div>
+                    </button>
+
                 ))}
               </div>
             ) : (
