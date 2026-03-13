@@ -30,35 +30,41 @@ body {
 }
 
 @media print {
-  /* Hide everything except the modal content */
-  body > * { display: none !important; }
-  .print-document { display: block !important; }
-  
-  /* Document styles */
+  /* Hide everything except the invoice/quote document */
+  body > * {
+    display: none !important;
+  }
+
+  /* Show only the modal content */
   .print-document {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    background: white;
-    color: black;
-    padding: 40px;
-    font-family: var(--font-sans);
+    display: block !important;
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 9999 !important;
+    background: white !important;
+    color: black !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 2cm !important;
   }
-  
+
+  /* Force all text inside to black */
+  .print-document * {
+    color: black !important;
+    background: transparent !important;
+    border-color: #e5e5e5 !important;
+  }
+
+  /* Keep table borders visible */
   .print-document table {
-    width: 100%;
-    border-collapse: collapse;
+    border-collapse: collapse !important;
   }
-  
-  .print-document td,
-  .print-document th {
-    padding: 8px 12px;
-    border-bottom: 1px solid #e5e7eb;
-    text-align: left;
-  }
-  
-  .print-document .totals-section {
-    margin-top: 24px;
+
+  .print-document th,
+  .print-document td {
+    border-bottom: 1px solid #e5e5e5 !important;
   }
 }

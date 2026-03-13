@@ -29,7 +29,7 @@ export function InvoiceDetailModal({ invoice, onClose }: { invoice: Invoice | nu
             className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm print:hidden"
             onClick={onClose}
           />
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none print:p-0 print:static print:block">
+         <div className="fixed inset-0 z-[9998] flex items-center justify-center p-4 pointer-events-none">
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
