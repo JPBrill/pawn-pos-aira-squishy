@@ -40,7 +40,7 @@ export function QuoteBuilderModal({ isOpen, onClose }: { isOpen: boolean; onClos
       setDiscount(0);
       setIsSearching(false);
       setSearchQuery('');
-    }
+      }
   }, [isOpen]);
 
   const subtotal = lineItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -49,6 +49,14 @@ export function QuoteBuilderModal({ isOpen, onClose }: { isOpen: boolean; onClos
   const total = afterDiscount + taxAmount;
 
   const handleSave = (status: QuoteStatus) => {
+    if (discount < 0) {
+      toast.error('Discount cannot be negative.');  
+      return;
+      }
+    if (discount > subtotal) {
+      toast.error('Discount cannot exceed the subtotal.');
+      return;
+      }
     addQuote({
       id: crypto.randomUUID(),
       quoteNumber: `QUO-${Date.now()}`,
@@ -271,7 +279,11 @@ export function QuoteBuilderModal({ isOpen, onClose }: { isOpen: boolean; onClos
                               min="0"
                               step="0.01"
                               value={discount || ''}
-                              onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
+                              onChange={(e) => 
+                              {
+                                const val = parseFloat(e.target.value) || 0;
+                                setDiscount(Math.max(0, val));
+                              }}
                               className="h-8 text-right font-mono"
                             />
                           </div>

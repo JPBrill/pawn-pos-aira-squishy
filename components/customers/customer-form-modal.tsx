@@ -17,7 +17,38 @@ export function CustomerFormModal({ isOpen, onClose, customer }: { isOpen: boole
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [notes, setNotes] = useState('');
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // SA ID: exactly 13 digits, valid date, valid Luhn checksum
+  function validateSAID(id: string): boolean {
+  if (!/^\d{13}$/.test(id)) return false;
+  const year = parseInt(id.substring(0, 2));
+  const month = parseInt(id.substring(2, 4));
+  const day = parseInt(id.substring(4, 6));
+  if (month < 1 || month > 12) return false;
+  if (day < 1 || day > 31) return false;
+  // Luhn algorithm
+  let sum = 0;
+  for (let i = 0; i < 12; i++) {
+    let digit = parseInt(id[i]);
+    if (i % 2 === 1) {
+      digit *= 2;
+      if (digit > 9) digit -= 9;
+    }
+    sum += digit;
+  }
+  const check = (10 - (sum % 10)) % 10;
+  return check === parseInt(id[12]);
+  }
+
+  function validateSAPhone(phone: string): boolean {
+  // Accepts: 0XXXXXXXXX (10 digits) or +27XXXXXXXXX (12 chars)
+  const cleaned = phone.replace(/[\s\-]/g, '');
+  return /^0[6-8]\d{8}$/.test(cleaned) ||   // SA mobile
+         /^0[1-5]\d{8}$/.test(cleaned) ||    // SA landline
+         /^\+27[6-8]\d{8}$/.test(cleaned);   // International
+  }
+
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -36,48 +67,55 @@ export function CustomerFormModal({ isOpen, onClose, customer }: { isOpen: boole
           setEmail('');
           setNotes('');
         }
-        setError('');
+        setErrors({});
       }, 0);
     }
     return () => clearTimeout(timer);
   }, [isOpen, customer]);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
+  const newErrors: Record<string, string> = {};
+
     if (!name.trim()) {
-      setError('Full Name is required');
-      toast.error('Name is required.');
-      return;
+    newErrors.name = 'Full Name is required.';
+    }
+    if (idNumber.trim() && !/^\d{13}$/.test(idNumber.trim())) {
+    // First check format before full Luhn
+    newErrors.idNumber = 'Must be exactly 13 digits.';
+   } else if (idNumber.trim() && !validateSAID(idNumber.trim())) {
+    newErrors.idNumber = 'Invalid SA ID number. Check the digits and try again.';
+   }
+   if (phone.trim() && !validateSAPhone(phone.trim())) {
+    newErrors.phone = 'Enter a valid SA number (e.g. 0821234567 or +27821234567).';
     }
 
-    const now = new Date().toISOString();
-    
-    if (customer) {
-      updateCustomer(customer.id, {
-        name: name.trim(),
-        idNumber: idNumber.trim() || undefined,
-        phone: phone.trim() || undefined,
-        email: email.trim() || undefined,
-        notes: notes.trim() || undefined,
-        updatedAt: now,
-      });
-      toast.success('Customer details updated.');
-    } else {
-      addCustomer({
-        id: crypto.randomUUID(),
-        name: name.trim(),
-        idNumber: idNumber.trim() || undefined,
-        phone: phone.trim() || undefined,
-        email: email.trim() || undefined,
-        notes: notes.trim() || undefined,
-        createdAt: now,
-        updatedAt: now,
-      });
-      toast.success('Customer added successfully.');
-    }
-    
-    onClose();
-  };
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(newErrors);
+    toast.error('Please fix the errors below.');
+    return;
+  }
+
+  const now = new Date().toISOString();
+  if (customer) {
+    updateCustomer(customer.id, {
+      name: name.trim(), idNumber: idNumber.trim() || undefined,
+      phone: phone.trim() || undefined, email: email.trim() || undefined,
+      notes: notes.trim() || undefined, updatedAt: now,
+    });
+    toast.success('Customer details updated.');
+  } else {
+    addCustomer({
+      id: crypto.randomUUID(), name: name.trim(),
+      idNumber: idNumber.trim() || undefined, phone: phone.trim() || undefined,
+      email: email.trim() || undefined, notes: notes.trim() || undefined,
+      createdAt: now, updatedAt: now,
+    });
+    toast.success('Customer added successfully.');
+  }
+  onClose();
+};
+
 
   return (
     <AnimatePresence>
@@ -112,8 +150,8 @@ export function CustomerFormModal({ isOpen, onClose, customer }: { isOpen: boole
                   <SquishyInput
                     label="Full Name *"
                     value={name}
-                    onChange={(e) => { setName(e.target.value); setError(''); }}
-                    error={error}
+                    error={errors.name}
+                    onChange={(e) => { setName(e.target.value); setErrors(p => ({ ...p, name: '' })); }}
                     placeholder="e.g. Jane Doe"
                     autoFocus
                   />
@@ -122,8 +160,10 @@ export function CustomerFormModal({ isOpen, onClose, customer }: { isOpen: boole
                     <SquishyInput
                       label="ID / Passport Number"
                       value={idNumber}
-                      onChange={(e) => setIdNumber(e.target.value)}
-                      placeholder="e.g. AB123456"
+                      error={errors.idNumber}
+                      onChange={(e) => { setIdNumber(e.target.value); setErrors(p => ({ ...p, idNumber: '' })); }}
+                      placeholder="e.g. 8501015026082"
+
                     />
                     <p className="text-[10px] text-ps-text-muted mt-1 ml-1 uppercase tracking-wider">Used for loan agreements</p>
                   </div>
@@ -133,8 +173,9 @@ export function CustomerFormModal({ isOpen, onClose, customer }: { isOpen: boole
                       label="Phone Number"
                       type="tel"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="e.g. 555-0123"
+                      error={errors.phone}
+                      onChange={(e) => { setPhone(e.target.value); setErrors(p => ({ ...p, phone: '' })); }}
+                      placeholder="e.g. 0821234567"
                     />
                     <SquishyInput
                       label="Email Address"
