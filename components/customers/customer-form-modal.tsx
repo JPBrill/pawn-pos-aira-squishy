@@ -73,48 +73,67 @@ export function CustomerFormModal({ isOpen, onClose, customer }: { isOpen: boole
     return () => clearTimeout(timer);
   }, [isOpen, customer]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-  e.preventDefault();
-  const newErrors: Record<string, string> = {};
+  const handleSubmit = (e: React.FormEvent) => { 
+         e.preventDefault();
+         const newErrors: Record<string, string> = {};
 
-    if (!name.trim()) {
-    newErrors.name = 'Full Name is required.';
-    }
-    if (idNumber.trim() && !/^\d{13}$/.test(idNumber.trim())) {
-    // First check format before full Luhn
-    newErrors.idNumber = 'Must be exactly 13 digits.';
-   } else if (idNumber.trim() && !validateSAID(idNumber.trim())) {
-    newErrors.idNumber = 'Invalid SA ID number. Check the digits and try again.';
-   }
-   if (phone.trim() && !validateSAPhone(phone.trim())) {
-    newErrors.phone = 'Enter a valid SA number (e.g. 0821234567 or +27821234567).';
-    }
+        // Duplicate detection (only on new customers, not edits)
+          if (!customer) {
+            const allCustomers = useCustomerStore.getState().customers;
+            const phoneMatch = phone.trim() && allCustomers.find(
+              c => c.phone?.replace(/[\s\-]/g, '') === phone.trim().replace(/[\s\-]/g, '')
+            );
+            const idMatch = idNumber.trim() && allCustomers.find(
+              c => c.idNumber === idNumber.trim()
+            );
+            if (phoneMatch || idMatch) {
+              const field = phoneMatch ? 'phone number' : 'ID number';
+              const existing = (phoneMatch || idMatch)!;
+              if (!window.confirm(
+                `A customer with this ${field} already exists: "${existing.name}". Create anyway?`
+              )) return;
+            }
+          }
 
-  if (Object.keys(newErrors).length > 0) {
-    setErrors(newErrors);
-    toast.error('Please fix the errors below.');
-    return;
-  }
+         if (!name.trim()) {
+          newErrors.name = 'Full Name is required.';
+          }
+          if (idNumber.trim() && !/^\d{13}$/.test(idNumber.trim())) {
+            // First check format before full Luhn
+            newErrors.idNumber = 'Must be exactly 13 digits.';
+            } 
+          else if (idNumber.trim() && !validateSAID(idNumber.trim())) {
+            newErrors.idNumber = 'Invalid SA ID number. Check the digits and try again.';
+            }
+          if (phone.trim() && !validateSAPhone(phone.trim())) {
+            newErrors.phone = 'Enter a valid SA number (e.g. 0821234567 or +27821234567).';
+            }
 
-  const now = new Date().toISOString();
-  if (customer) {
-    updateCustomer(customer.id, {
-      name: name.trim(), idNumber: idNumber.trim() || undefined,
-      phone: phone.trim() || undefined, email: email.trim() || undefined,
-      notes: notes.trim() || undefined, updatedAt: now,
-    });
-    toast.success('Customer details updated.');
-  } else {
-    addCustomer({
-      id: crypto.randomUUID(), name: name.trim(),
-      idNumber: idNumber.trim() || undefined, phone: phone.trim() || undefined,
-      email: email.trim() || undefined, notes: notes.trim() || undefined,
-      createdAt: now, updatedAt: now,
-    });
-    toast.success('Customer added successfully.');
-  }
-  onClose();
-};
+           if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            toast.error('Please fix the errors below.');
+            return;
+            }
+
+          const now = new Date().toISOString();
+          if (customer) {
+            updateCustomer(customer.id, {
+              name: name.trim(), idNumber: idNumber.trim() || undefined,
+              phone: phone.trim() || undefined, email: email.trim() || undefined,
+              notes: notes.trim() || undefined, updatedAt: now,
+            });
+            toast.success('Customer details updated.');
+          } else {
+            addCustomer({
+              id: crypto.randomUUID(), name: name.trim(),
+              idNumber: idNumber.trim() || undefined, phone: phone.trim() || undefined,
+              email: email.trim() || undefined, notes: notes.trim() || undefined,
+              createdAt: now, updatedAt: now,
+            });
+            toast.success('Customer added successfully.');
+          }
+          onClose();
+        };
 
 
   return (

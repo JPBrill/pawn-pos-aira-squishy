@@ -115,7 +115,10 @@ export default function InventoryPage() {
                         </span>
                       </div>
                       <div className="text-sm text-white font-mono">
-                        {item.askingPrice ? `${currency}${item.askingPrice.toFixed(2)}` : '-'}
+                        {item.askingPrice !== undefined && item.askingPrice !== null
+                          ? `${currency}${item.askingPrice.toFixed(2)}`
+                            : <span className="text-ps-text-muted text-xs">No price</span>
+                            }
                       </div>
                       <div>
                         <SquishyBadge status={item.status} />

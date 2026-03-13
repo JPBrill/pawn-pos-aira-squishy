@@ -133,7 +133,10 @@ export function ItemDetailPanel({ item, onClose }: { item: InventoryItem | null;
                 <h3 className="text-xs font-bold uppercase tracking-wider text-ps-text-muted">Actions</h3>
                 <div className="flex flex-wrap gap-3 relative">
                   {(item.status === 'ON_LOAN' || item.status === 'DRAFT') && (
-                    <SquishyButton onClick={() => { setStatus(item.id, 'FOR_SALE'); toast.success('Item marked as For Sale.'); }}>
+                    <SquishyButton onClick={() => {if (
+                      window.confirm('Mark this item as For Sale?')) {
+                      updateItem(item.id, { status: 'FOR_SALE' });
+                      toast.success('Item marked as For Sale.'); }}}>
                       Mark For Sale
                     </SquishyButton>
                   )}

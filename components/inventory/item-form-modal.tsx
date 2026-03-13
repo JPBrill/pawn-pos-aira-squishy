@@ -65,13 +65,25 @@ export function ItemFormModal({ isOpen, onClose, item }: { isOpen: boolean; onCl
     if (!category.trim()) newErrors.category = 'Category is required';
     if (cost === '' || cost === undefined || cost === null) {
       newErrors.cost = 'Cost or loan amount is required.';
-    }
+        }
+
+    if (parseFloat(cost) > 10000000) {
+        newErrors.cost = 'Price cannot exceed R10,000,000.';
+        }
+
+    if (appraised && parseFloat(appraised) > 10000000) {
+        newErrors.appraised = 'Appraised value cannot exceed R10,000 000.';
+        }
+        
+    if (asking && parseFloat(asking) > 10000000) {
+        newErrors.asking = 'Asking price cannot exceed R10,000,000.';
+        }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       toast.error('Please fill in all required fields.');
       return;
-    }
+        }
 
     const now = new Date().toISOString();
     
@@ -228,6 +240,7 @@ export function ItemFormModal({ isOpen, onClose, item }: { isOpen: boolean; onCl
                         type="number"
                         step="0.01"
                         min="0"
+                        max="10000000" 
                         leftIcon={<span className="text-sm">{currency}</span>}
                         value={cost}
                         onChange={(e) => setCost(e.target.value)}
@@ -238,6 +251,7 @@ export function ItemFormModal({ isOpen, onClose, item }: { isOpen: boolean; onCl
                         type="number"
                         step="0.01"
                         min="0"
+                        max="10000000" 
                         leftIcon={<span className="text-sm">{currency}</span>}
                         value={appraised}
                         onChange={(e) => setAppraised(e.target.value)}
@@ -247,6 +261,7 @@ export function ItemFormModal({ isOpen, onClose, item }: { isOpen: boolean; onCl
                         type="number"
                         step="0.01"
                         min="0"
+                        max="10000000" 
                         leftIcon={<span className="text-sm">{currency}</span>}
                         value={asking}
                         onChange={(e) => setAsking(e.target.value)}
