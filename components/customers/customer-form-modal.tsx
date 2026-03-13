@@ -73,7 +73,7 @@ export function CustomerFormModal({ isOpen, onClose, customer }: { isOpen: boole
     e.preventDefault();
     const newErrors: Record<string, string> = {};
 
-    // Duplicate detection (only on new customers, not edits)
+    // Duplicate detection — phone, ID number, and email (new customers only)
     if (!customer) {
       const allCustomers = useCustomerStore.getState().customers;
       const phoneMatch = phone.trim()
@@ -82,9 +82,12 @@ export function CustomerFormModal({ isOpen, onClose, customer }: { isOpen: boole
       const idMatch = idNumber.trim()
         ? allCustomers.find(c => c.idNumber === idNumber.trim())
         : undefined;
-      const existing = phoneMatch ?? idMatch;
+      const emailMatch = email.trim()
+        ? allCustomers.find(c => c.email?.toLowerCase() === email.trim().toLowerCase())
+        : undefined;
+      const existing = phoneMatch ?? idMatch ?? emailMatch;
       if (existing) {
-        const field = phoneMatch ? 'phone number' : 'ID number';
+        const field = phoneMatch ? 'phone number' : idMatch ? 'ID number' : 'email address';
         if (!window.confirm(
           `A customer with this ${field} already exists: "${existing.name}". Create anyway?`
         )) return;
