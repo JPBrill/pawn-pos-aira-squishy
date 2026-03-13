@@ -8,26 +8,13 @@ import { useCustomerStore } from '@/store';
 import { Customer } from '@/types';
 import { toast } from '@/components/ui/toast-provider';
 
-export function CustomerFormModal({ isOpen, onClose, customer }: { isOpen: boolean; onClose: () => void; customer?: Customer }) {
-  const addCustomer = useCustomerStore((state) => state.addCustomer);
-  const updateCustomer = useCustomerStore((state) => state.updateCustomer);
-
-  const [name, setName] = useState('');
-  const [idNumber, setIdNumber] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [notes, setNotes] = useState('');
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  // SA ID: exactly 13 digits, valid date, valid Luhn checksum
-  function validateSAID(id: string): boolean {
+// SA ID: exactly 13 digits, valid date, valid Luhn checksum
+function validateSAID(id: string): boolean {
   if (!/^\d{13}$/.test(id)) return false;
-  const year = parseInt(id.substring(0, 2));
   const month = parseInt(id.substring(2, 4));
   const day = parseInt(id.substring(4, 6));
   if (month < 1 || month > 12) return false;
   if (day < 1 || day > 31) return false;
-  // Luhn algorithm
   let sum = 0;
   for (let i = 0; i < 12; i++) {
     let digit = parseInt(id[i]);
@@ -39,16 +26,25 @@ export function CustomerFormModal({ isOpen, onClose, customer }: { isOpen: boole
   }
   const check = (10 - (sum % 10)) % 10;
   return check === parseInt(id[12]);
-  }
+}
 
-  function validateSAPhone(phone: string): boolean {
-  // Accepts: 0XXXXXXXXX (10 digits) or +27XXXXXXXXX (12 chars)
+function validateSAPhone(phone: string): boolean {
   const cleaned = phone.replace(/[\s\-]/g, '');
-  return /^0[6-8]\d{8}$/.test(cleaned) ||   // SA mobile
-         /^0[1-5]\d{8}$/.test(cleaned) ||    // SA landline
-         /^\+27[6-8]\d{8}$/.test(cleaned);   // International
-  }
+  return /^0[6-8]\d{8}$/.test(cleaned) ||
+         /^0[1-5]\d{8}$/.test(cleaned) ||
+         /^\+27[6-8]\d{8}$/.test(cleaned);
+}
 
+export function CustomerFormModal({ isOpen, onClose, customer }: { isOpen: boolean; onClose: () => void; customer?: Customer }) {
+  const addCustomer = useCustomerStore((state) => state.addCustomer);
+  const updateCustomer = useCustomerStore((state) => state.updateCustomer);
+
+  const [name, setName] = useState('');
+  const [idNumber, setIdNumber] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [notes, setNotes] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -73,68 +69,65 @@ export function CustomerFormModal({ isOpen, onClose, customer }: { isOpen: boole
     return () => clearTimeout(timer);
   }, [isOpen, customer]);
 
-  const handleSubmit = (e: React.FormEvent) => { 
-         e.preventDefault();
-         const newErrors: Record<string, string> = {};
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newErrors: Record<string, string> = {};
 
-        // Duplicate detection (only on new customers, not edits)
-          if (!customer) {
-            const allCustomers = useCustomerStore.getState().customers;
-            const phoneMatch = phone.trim() && allCustomers.find(
-              c => c.phone?.replace(/[\s\-]/g, '') === phone.trim().replace(/[\s\-]/g, '')
-            );
-            const idMatch = idNumber.trim() && allCustomers.find(
-              c => c.idNumber === idNumber.trim()
-            );
-            if (phoneMatch || idMatch) {
-              const field = phoneMatch ? 'phone number' : 'ID number';
-              const existing = (phoneMatch || idMatch)!;
-              if (!window.confirm(
-                `A customer with this ${field} already exists: "${existing.name}". Create anyway?`
-              )) return;
-            }
-          }
+    // Duplicate detection (only on new customers, not edits)
+    if (!customer) {
+      const allCustomers = useCustomerStore.getState().customers;
+      const phoneMatch = phone.trim()
+        ? allCustomers.find(c => c.phone?.replace(/[\s\-]/g, '') === phone.trim().replace(/[\s\-]/g, ''))
+        : undefined;
+      const idMatch = idNumber.trim()
+        ? allCustomers.find(c => c.idNumber === idNumber.trim())
+        : undefined;
+      const existing = phoneMatch ?? idMatch;
+      if (existing) {
+        const field = phoneMatch ? 'phone number' : 'ID number';
+        if (!window.confirm(
+          `A customer with this ${field} already exists: "${existing.name}". Create anyway?`
+        )) return;
+      }
+    }
 
-         if (!name.trim()) {
-          newErrors.name = 'Full Name is required.';
-          }
-          if (idNumber.trim() && !/^\d{13}$/.test(idNumber.trim())) {
-            // First check format before full Luhn
-            newErrors.idNumber = 'Must be exactly 13 digits.';
-            } 
-          else if (idNumber.trim() && !validateSAID(idNumber.trim())) {
-            newErrors.idNumber = 'Invalid SA ID number. Check the digits and try again.';
-            }
-          if (phone.trim() && !validateSAPhone(phone.trim())) {
-            newErrors.phone = 'Enter a valid SA number (e.g. 0821234567 or +27821234567).';
-            }
+    if (!name.trim()) {
+      newErrors.name = 'Full Name is required.';
+    }
+    if (idNumber.trim() && !/^\d{13}$/.test(idNumber.trim())) {
+      newErrors.idNumber = 'Must be exactly 13 digits.';
+    } else if (idNumber.trim() && !validateSAID(idNumber.trim())) {
+      newErrors.idNumber = 'Invalid SA ID number. Check the digits and try again.';
+    }
+    if (phone.trim() && !validateSAPhone(phone.trim())) {
+      newErrors.phone = 'Enter a valid SA number (e.g. 0821234567 or +27821234567).';
+    }
 
-           if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
-            toast.error('Please fix the errors below.');
-            return;
-            }
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast.error('Please fix the errors below.');
+      return;
+    }
 
-          const now = new Date().toISOString();
-          if (customer) {
-            updateCustomer(customer.id, {
-              name: name.trim(), idNumber: idNumber.trim() || undefined,
-              phone: phone.trim() || undefined, email: email.trim() || undefined,
-              notes: notes.trim() || undefined, updatedAt: now,
-            });
-            toast.success('Customer details updated.');
-          } else {
-            addCustomer({
-              id: crypto.randomUUID(), name: name.trim(),
-              idNumber: idNumber.trim() || undefined, phone: phone.trim() || undefined,
-              email: email.trim() || undefined, notes: notes.trim() || undefined,
-              createdAt: now, updatedAt: now,
-            });
-            toast.success('Customer added successfully.');
-          }
-          onClose();
-        };
-
+    const now = new Date().toISOString();
+    if (customer) {
+      updateCustomer(customer.id, {
+        name: name.trim(), idNumber: idNumber.trim() || undefined,
+        phone: phone.trim() || undefined, email: email.trim() || undefined,
+        notes: notes.trim() || undefined, updatedAt: now,
+      });
+      toast.success('Customer details updated.');
+    } else {
+      addCustomer({
+        id: crypto.randomUUID(), name: name.trim(),
+        idNumber: idNumber.trim() || undefined, phone: phone.trim() || undefined,
+        email: email.trim() || undefined, notes: notes.trim() || undefined,
+        createdAt: now, updatedAt: now,
+      });
+      toast.success('Customer added successfully.');
+    }
+    onClose();
+  };
 
   return (
     <AnimatePresence>
@@ -174,7 +167,7 @@ export function CustomerFormModal({ isOpen, onClose, customer }: { isOpen: boole
                     placeholder="e.g. Jane Doe"
                     autoFocus
                   />
-                  
+
                   <div>
                     <SquishyInput
                       label="ID / Passport Number"
@@ -182,7 +175,6 @@ export function CustomerFormModal({ isOpen, onClose, customer }: { isOpen: boole
                       error={errors.idNumber}
                       onChange={(e) => { setIdNumber(e.target.value); setErrors(p => ({ ...p, idNumber: '' })); }}
                       placeholder="e.g. 8501015026082"
-
                     />
                     <p className="text-[10px] text-ps-text-muted mt-1 ml-1 uppercase tracking-wider">Used for loan agreements</p>
                   </div>
