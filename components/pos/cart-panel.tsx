@@ -4,6 +4,9 @@ import { SquishyCard } from '@/components/ui/squishy-card';
 import { SquishyButton } from '@/components/ui/squishy-button';
 import { usePosStore, selectCartSubtotal, selectCartTotal, useCustomerStore, useUiStore } from '@/store';
 import { PaymentMethod } from '@/types';
+import { toast } from '@/components/ui/toast-provider';
+
+
 
 export function CartPanel() {
   const { cartItems, activeCustomerId, paymentMethod, removeFromCart, updateQuantity, setActiveCustomer, setPaymentMethod, clearCart, completeSale } = usePosStore();
@@ -17,7 +20,11 @@ export function CartPanel() {
   const taxAmount = total - subtotal;
 
   const handleCompleteSale = () => {
-    if (cartItems.length === 0 || !paymentMethod) return;
+  if (cartItems.length === 0) {toast('Cannot complete a sale with no items in the cart.', { type: 'error' });
+    return;
+  }
+  if (!paymentMethod) return;
+
     setIsCompleting(true);
     setTimeout(() => {
       completeSale();
@@ -147,10 +154,13 @@ export function CartPanel() {
         {/* Complete Sale */}
         <div className="pt-2">
           <SquishyButton
-            className="w-full py-4 text-base font-bold"
+            className={`w-full py-4 text-base font-bold transition-opacity ${
+              cartItems.length === 0 || !paymentMethod ? 'opacity-40 cursor-not-allowed' : ''
+            }`}
             disabled={cartItems.length === 0 || !paymentMethod || isCompleting}
             onClick={handleCompleteSale}
           >
+
             {isCompleting ? (
               <span className="flex items-center justify-center gap-2">
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
