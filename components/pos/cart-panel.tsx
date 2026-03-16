@@ -20,7 +20,8 @@ export function CartPanel() {
   const taxAmount = total - subtotal;
 
   const handleCompleteSale = () => {
-  if (cartItems.length === 0) {toast('Cannot complete a sale with no items in the cart.', { type: 'error' });
+  if (cartItems.length === 0) {
+    toast.error('Cannot complete a sale with no items in the cart.');
     return;
   }
   if (!paymentMethod) return;
